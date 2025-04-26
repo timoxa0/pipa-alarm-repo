@@ -17,11 +17,16 @@ jobs:
         with:
           ref: repo
           path: repo
+      
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
 
       - name: Load config
         run: |
-          ls repo/
-          cp repo/packages.json .
+          cp main/packages.json .
           [ ! -f repo/build-state.json ] && echo '{}' > repo/build-state.json
           cp repo/build-state.json .
 
