@@ -12,10 +12,6 @@ jobs:
 
     container: 
       image: ghcr.io/nabu-alarm/archlinux-builder:latest
-      volumes:
-        - /__w:/__w
-        - /github/home:/github/home
-        - /github/workflow:/github/workflow
 
     steps:
       - name: Update system
