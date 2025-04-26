@@ -58,11 +58,11 @@ jobs:
           echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
           echo "PACKAGER='Arch Package Builder <build@tx0.su>'" >> ~/.makepkg.conf
           echo "MAKEFLAGS='-j$(nproc)'" >> ~/.makepkg.conf
-          cat /etc/makepkg.conf
 
       - name: Build only changed packages
         run: |
           mkdir out
+          outdir="$(realpath ./out)"
           updated_state="{}"
 
           for row in $(jq -c '.[]' packages.json); do
@@ -77,11 +77,11 @@ jobs:
             if [[ "$latest_sha" != "$cached_sha" ]]; then
               echo "Building $name"
               git clone --depth=1 https://github.com/$repo src/$name
-              cd src/$name/$path
+              pushd "src/$name/$path"
               GPG_TTY=$(tty) gpg --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --batch --yes --detach-sign --use-agent PKGBUILD
               makepkg -s --noconfirm --clean --sign
-              mv *.pkg.tar.zst *.sig ../../../out/
-              cd ../../../
+              mv *.pkg.tar.zst *.sig "$outdir"
+              popd
               updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$latest_sha" '. + {($name): $sha}')
             else
               echo "Skipping $name (unchanged)"
