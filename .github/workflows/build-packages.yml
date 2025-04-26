@@ -6,7 +6,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
-    container: ghcr.io/nabu-alarm/archlinux-builder:latest
+    
+    permissions:
+      contents: read    # allow reading repo content
+
+    container: 
+      image: ghcr.io/nabu-alarm/archlinux-builder:latest
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.github_token }}
 
     steps:
       - name: Update system
