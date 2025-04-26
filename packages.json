@@ -25,6 +25,16 @@
     "path": "."
   },
   {
+    "name": "rmtfs",
+    "repo": "https://github.com/nabu-alarm/rmtfs",
+    "path": "."
+  },
+  {
+    "name": "tqftpserv",
+    "repo": "https://github.com/nabu-alarm/tqftpserv",
+    "path": "."
+  },
+  {
     "name": "qbootctl",
     "repo": "https://aur.archlinux.org/qbootctl.git",
     "path": "."
