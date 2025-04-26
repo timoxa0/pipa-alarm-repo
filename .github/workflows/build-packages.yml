@@ -69,17 +69,17 @@ jobs:
           updated_state="{}"
 
           for row in $(jq -c '.[]' packages.json); do
-            name=$(echo "$row" | jq -r '.name')
-            repo=$(echo "$row" | jq -r '.repo')
-            path=$(echo "$row" | jq -r '.path')
+            name="$(echo "$row" | jq -r '.name')"
+            repo="$(echo "$row" | jq -r '.repo')"
+            path="$(echo "$row" | jq -r '.path')"
 
             echo "::group::$name"
-            latest_sha=$(git ls-remote https://github.com/$repo HEAD | cut -f1)
+            latest_sha=$(git ls-remote "$repo" HEAD | cut -f1 | tail -n1)
             cached_sha=$(jq -r --arg name "$name" '.[$name] // ""' build-state.json)
 
             if [[ "$latest_sha" != "$cached_sha" ]]; then
               echo "Building $name"
-              git clone --depth=1 https://github.com/$repo src/$name
+              git clone --depth=1 "$repo" src/$name
               pushd "src/$name/$path"
               makepkg -s --noconfirm --clean --sign
               mv *.pkg.tar.xz *.sig "$outdir"

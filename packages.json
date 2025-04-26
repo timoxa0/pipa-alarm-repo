@@ -1,22 +1,22 @@
 [
   {
     "name": "nabu-alarm-keyring",
-    "repo": "nabu-alarm/nabu-alarm-keyring",
+    "repo": "https://github.com/nabu-alarm/nabu-alarm-keyring",
     "path": "."
   },
   {
     "name": "linux-nabu",
-    "repo": "nabu-alarm/linux-nabu",
+    "repo": "https://github.com/nabu-alarm/linux-nabu",
     "path": "."
   },
   {
     "name": "linux-firmware-xiaomi-nabu",
-    "repo": "nabu-alarm/linux-firmware-xiaomi-nabu",
+    "repo": "https://github.com/nabu-alarm/linux-firmware-xiaomi-nabu",
     "path": "."
   },
   {
     "name": "alsa-ucm-conf-xiaomi-nabu",
-    "repo": "nabu-alarm/alsa-ucm-conf-xiaomi-nabu",
+    "repo": "https://github.com/nabu-alarm/alsa-ucm-conf-xiaomi-nabu",
     "path": "."
   }
 ]
