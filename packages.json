@@ -3,5 +3,10 @@
     "name": "nabu-alarm-keyring",
     "repo": "nabu-alarm/nabu-alarm-keyring",
     "path": "."
+  },
+  {
+    "name": "linux-nabu",
+    "repo": "nabu-alarm/linux-nabu",
+    "path": "."
   }
 ]
