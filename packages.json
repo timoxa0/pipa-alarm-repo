@@ -18,5 +18,10 @@
     "name": "alsa-ucm-conf-xiaomi-nabu",
     "repo": "https://github.com/nabu-alarm/alsa-ucm-conf-xiaomi-nabu",
     "path": "."
+  },
+  {
+    "name": "qbootctl",
+    "repo": "https://aur.archlinux.org/qbootctl.git",
+    "path": "."
   }
 ]
