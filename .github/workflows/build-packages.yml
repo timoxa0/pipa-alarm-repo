@@ -50,6 +50,8 @@ jobs:
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "default-cache-ttl 0" >> ~/.gnupg/gpg-agent.conf
+          echo "max-cache-ttl 0" >> ~/.gnupg/gpg-agent.conf
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           echo RELOADAGENT | gpg-connect-agent
         env:
@@ -83,7 +85,7 @@ jobs:
               echo "Building $name"
               git clone --depth=1 https://github.com/$repo src/$name
               pushd "src/$name/$path"
-              GPG_TTY=$(tty) gpg --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --batch --yes --detach-sign --use-agent PKGBUILD
+              GPG_AGENT_INFO="" gpg --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --batch --yes --detach-sign --use-agent PKGBUILD
               makepkg -s --noconfirm --clean --sign
               mv *.pkg.tar.xz *.sig "$outdir"
               popd
