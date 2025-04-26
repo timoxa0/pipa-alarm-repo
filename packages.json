@@ -20,6 +20,11 @@
     "path": "."
   },
   {
+    "name": "qrtr",
+    "repo": "https://github.com/nabu-alarm/qrtr",
+    "path": "."
+  },
+  {
     "name": "qbootctl",
     "repo": "https://aur.archlinux.org/qbootctl.git",
     "path": "."
