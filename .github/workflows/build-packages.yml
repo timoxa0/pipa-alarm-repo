@@ -1,6 +1,10 @@
 name: Build & Sync Packages
 
 on:
+  push:
+    branches:
+      - main
+
   workflow_dispatch:
 
 jobs:
@@ -9,16 +13,12 @@ jobs:
     
     permissions:
       packages: read
+      contents: write
 
     container: 
       image: ghcr.io/nabu-alarm/archlinux-builder:latest
 
     steps:
-      - name: aaaaaaa
-        run: |
-          ls -la /__w
-          ls -la /github
-
       - name: Update system
         run: sudo pacman -Syu --noconfirm
 
@@ -58,6 +58,7 @@ jobs:
           echo "GPGKEY=$KEYID" | sudo tee -a /etc/makepkg.conf
           echo "PACKAGER='Arch Package Builder <build@tx0.su>'" | sudo tee -a /etc/makepkg.conf
           echo "MAKEFLAGS='-j$(nproc)'" | sudo tee -a /etc/makepkg.conf
+          cat /etc/makepkg.conf
 
       - name: Build only changed packages
         run: |
