@@ -38,5 +38,10 @@
     "name": "qbootctl",
     "repo": "https://aur.archlinux.org/qbootctl.git",
     "path": "."
+  },
+  {
+    "name": "paru",
+    "repo": "https://aur.archlinux.org/paru.git",
+    "path": "."
   }
 ]
