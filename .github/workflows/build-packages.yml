@@ -14,6 +14,11 @@ jobs:
       image: ghcr.io/nabu-alarm/archlinux-builder:latest
 
     steps:
+      - name: aaaaaaa
+        run: |
+          ls -la /__w
+          ls -la /github
+
       - name: Update system
         run: sudo pacman -Syu --noconfirm
 
