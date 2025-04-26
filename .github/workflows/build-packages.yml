@@ -20,9 +20,6 @@ jobs:
       - name: Install tools
         run: sudo pacman -S --noconfirm base-devel git jq gnupg
 
-      - name: Create workspace directory
-        run: mkdir -p /__w/your-repo && chmod 777 /__w/your-repo
-
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
