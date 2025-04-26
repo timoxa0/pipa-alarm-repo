@@ -80,7 +80,7 @@ jobs:
               pushd "src/$name/$path"
               GPG_TTY=$(tty) gpg --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --batch --yes --detach-sign --use-agent PKGBUILD
               makepkg -s --noconfirm --clean --sign
-              mv *.pkg.tar.zst *.sig "$outdir"
+              mv *.pkg.tar* "$outdir"
               popd
               updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$latest_sha" '. + {($name): $sha}')
             else
