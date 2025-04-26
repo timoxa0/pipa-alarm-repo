@@ -8,5 +8,15 @@
     "name": "linux-nabu",
     "repo": "nabu-alarm/linux-nabu",
     "path": "."
+  },
+  {
+    "name": "linux-firmware-xiaomi-nabu",
+    "repo": "nabu-alarm/linux-firmware-xiaomi-nabu",
+    "path": "."
+  },
+  {
+    "name": "alsa-ucm-conf-xiaomi-nabu",
+    "repo": "nabu-alarm/alsa-ucm-conf-xiaomi-nabu",
+    "path": "."
   }
 ]
