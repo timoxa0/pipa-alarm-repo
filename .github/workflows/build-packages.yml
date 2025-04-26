@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'packages.json'
+      - '.github/workflows/build-packages.yml'
 
   workflow_dispatch:
 
@@ -58,6 +61,8 @@ jobs:
           echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
           echo "PACKAGER='Arch Package Builder <build@tx0.su>'" >> ~/.makepkg.conf
           echo "MAKEFLAGS='-j$(nproc)'" >> ~/.makepkg.conf
+          echo "PKGEXT='.pkg.tar.xz'" >> ~/.makepkg.conf
+          echo "SRCEXT='.src.tar.gz'" >> ~/.makepkg.conf
 
       - name: Build only changed packages
         run: |
@@ -80,7 +85,7 @@ jobs:
               pushd "src/$name/$path"
               GPG_TTY=$(tty) gpg --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --batch --yes --detach-sign --use-agent PKGBUILD
               makepkg -s --noconfirm --clean --sign
-              mv *.pkg.tar* "$outdir"
+              mv *.pkg.tar.xz *.sig "$outdir"
               popd
               updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$latest_sha" '. + {($name): $sha}')
             else
@@ -96,11 +101,11 @@ jobs:
 
       - name: Add packages to repo
         run: |
-          cp out/*.pkg.tar.zst out/*.sig repo/ 2>/dev/null || true
+          cp out/*.pkg.tar.xz out/*.sig repo/ 2>/dev/null || true
           cd repo
           KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
-          if ls *.pkg.tar.zst >/dev/null 2>&1; then
-            repo-add -s -k $KEYID myrepo.db.tar.gz *.pkg.tar.zst
+          if ls *.pkg.tar.xz >/dev/null 2>&1; then
+            repo-add -s -k $KEYID nabu-alarm.db.tar.gz *.pkg.tar.xz
           fi
 
       - name: Save new build-state
