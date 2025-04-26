@@ -41,7 +41,7 @@
   },
   {
     "name": "paru-bin",
-    "repo": "https://aur.archlinux.org/paru.git",
+    "repo": "https://aur.archlinux.org/paru-bin.git",
     "path": "."
   }
 ]
