@@ -81,10 +81,13 @@ jobs:
               echo "Building $name"
               git clone --depth=1 "$repo" src/$name
               pushd "src/$name/$path"
-              makepkg -s --noconfirm --clean --sign
-              mv *.pkg.tar.xz *.sig "$outdir"
-              popd
-              updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$latest_sha" '. + {($name): $sha}')
+              if makepkg -s --noconfirm --clean --sign; then
+                mv *.pkg.tar.xz *.sig "$outdir"
+                popd
+                updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$latest_sha" '. + {($name): $sha}')
+              else 
+                echo "$name: build failed"
+              fi
             else
               echo "Skipping $name (unchanged)"
               updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$cached_sha" '. + {($name): $sha}')
