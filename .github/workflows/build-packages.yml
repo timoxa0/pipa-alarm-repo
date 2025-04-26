@@ -55,9 +55,9 @@ jobs:
       - name: Configure makepkg
         run: |
           KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
-          echo "GPGKEY=$KEYID" | sudo tee -a /etc/makepkg.conf
-          echo "PACKAGER='Arch Package Builder <build@tx0.su>'" | sudo tee -a /etc/makepkg.conf
-          echo "MAKEFLAGS='-j$(nproc)'" | sudo tee -a /etc/makepkg.conf
+          echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
+          echo "PACKAGER='Arch Package Builder <build@tx0.su>'" >> ~/.makepkg.conf
+          echo "MAKEFLAGS='-j$(nproc)'" >> ~/.makepkg.conf
           cat /etc/makepkg.conf
 
       - name: Build only changed packages
@@ -78,6 +78,7 @@ jobs:
               echo "Building $name"
               git clone --depth=1 https://github.com/$repo src/$name
               cd src/$name/$path
+              GPG_TTY=$(tty) gpg --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --batch --yes --detach-sign --use-agent PKGBUILD
               makepkg -s --noconfirm --clean --sign
               mv *.pkg.tar.zst *.sig ../../../out/
               cd ../../../
@@ -90,6 +91,8 @@ jobs:
           done
 
           echo "$updated_state" > new-build-state.json
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Add packages to repo
         run: |
