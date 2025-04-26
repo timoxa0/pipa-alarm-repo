@@ -40,7 +40,7 @@
     "path": "."
   },
   {
-    "name": "paru",
+    "name": "paru-bin",
     "repo": "https://aur.archlinux.org/paru.git",
     "path": "."
   }
