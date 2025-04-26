@@ -49,11 +49,6 @@ jobs:
       - name: Import GPG key
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
-          echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
-          echo "default-cache-ttl 0" >> ~/.gnupg/gpg-agent.conf
-          echo "max-cache-ttl 0" >> ~/.gnupg/gpg-agent.conf
-          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           echo RELOADAGENT | gpg-connect-agent
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -86,8 +81,6 @@ jobs:
               echo "Building $name"
               git clone --depth=1 https://github.com/$repo src/$name
               pushd "src/$name/$path"
-              KEYGRIP=$(gpg --with-keygrip --list-secret-key | awk '/Keygrip/ {print $3; exit}')
-              gpg-preset-passphrase --preset --passphrase $GPG_PASSPHRASE $KEYGRIP
               makepkg -s --noconfirm --clean --sign
               mv *.pkg.tar.xz *.sig "$outdir"
               popd
@@ -100,8 +93,6 @@ jobs:
           done
 
           echo "$updated_state" > new-build-state.json
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Add packages to repo
         run: |
