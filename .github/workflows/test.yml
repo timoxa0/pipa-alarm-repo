@@ -1,4 +1,4 @@
-name: Build & Sync Packages
+name: Test
 
 on:
   workflow_dispatch:
@@ -9,7 +9,8 @@ jobs:
     container: lopsided/archlinux:latest
 
     steps:
-      - name: Install tools
+      - name: Hello world
         shell: bash
         run: |
           echo Hello World
+          uname -a
