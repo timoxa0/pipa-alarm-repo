@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          ref: repo
+          ref: gh-pages
           path: repo
       
       - name: Checkout main
@@ -93,5 +93,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: repo
+          publish_branch: gh-pages
           publish_dir: ./repo
