@@ -12,9 +12,6 @@ jobs:
 
     container: 
       image: ghcr.io/nabu-alarm/archlinux-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Update system
