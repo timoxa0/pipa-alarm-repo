@@ -1,0 +1,91 @@
+name: Build & Sync Packages
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    container: lopsided/archlinux:latest
+
+    steps:
+      - name: Install tools
+        run: pacman -Sy --noconfirm base-devel git jq gnupg
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: repo
+          path: repo
+
+      - name: Load config
+        run: |
+          cp repo/packages.json .
+          [ ! -f repo/build-state.json ] && echo '{}' > repo/build-state.json
+          cp repo/build-state.json .
+
+      - name: Import GPG key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          echo RELOADAGENT | gpg-connect-agent
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Configure makepkg
+        run: |
+          KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
+          echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
+          echo "PACKAGER='Arch Package Builder <build@tx0.su>'" >> ~/.makepkg.conf
+          echo "MAKEFLAGS='-j$(nproc)'" >> ~/.makepkg.conf
+
+      - name: Build only changed packages
+        run: |
+          mkdir out
+          updated_state="{}"
+
+          for row in $(jq -c '.[]' packages.json); do
+            name=$(echo "$row" | jq -r '.name')
+            repo=$(echo "$row" | jq -r '.repo')
+            path=$(echo "$row" | jq -r '.path')
+
+            echo "::group::$name"
+            latest_sha=$(git ls-remote https://github.com/$repo HEAD | cut -f1)
+            cached_sha=$(jq -r --arg name "$name" '.[$name] // ""' build-state.json)
+
+            if [[ "$latest_sha" != "$cached_sha" ]]; then
+              echo "Building $name"
+              git clone --depth=1 https://github.com/$repo src/$name
+              cd src/$name/$path
+              makepkg -s --noconfirm --clean --sign
+              mv *.pkg.tar.zst *.sig ../../../out/
+              cd ../../../
+              updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$latest_sha" '. + {($name): $sha}')
+            else
+              echo "Skipping $name (unchanged)"
+              updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$cached_sha" '. + {($name): $sha}')
+            fi
+            echo "::endgroup::"
+          done
+
+          echo "$updated_state" > new-build-state.json
+
+      - name: Add packages to repo
+        run: |
+          cp out/*.pkg.tar.zst out/*.sig repo/ 2>/dev/null || true
+          cd repo
+          KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
+          if ls *.pkg.tar.zst >/dev/null 2>&1; then
+            repo-add -s -k $KEYID myrepo.db.tar.gz *.pkg.tar.zst
+          fi
+
+      - name: Save new build-state
+        run: cp new-build-state.json repo/build-state.json
+
+      - name: Push to repo
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: repo
+          publish_dir: ./repo
