@@ -20,6 +20,7 @@ jobs:
 
       - name: Load config
         run: |
+          ls repo/
           cp repo/packages.json .
           [ ! -f repo/build-state.json ] && echo '{}' > repo/build-state.json
           cp repo/build-state.json .
