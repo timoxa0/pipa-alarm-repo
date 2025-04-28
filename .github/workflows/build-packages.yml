@@ -8,6 +8,9 @@ on:
       - 'packages.json'
       - '.github/workflows/build-packages.yml'
 
+  schedule:
+    - cron: '0 0 * * 1'
+
   workflow_dispatch:
 
 jobs:
