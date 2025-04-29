@@ -35,6 +35,11 @@
     "path": "."
   },
   {
+    "name": "upower-nncc",
+    "repo": "https://github.com/nabu-alarm/upower-nncc",
+    "path": "."
+  },
+  {
     "name": "qbootctl",
     "repo": "https://aur.archlinux.org/qbootctl.git",
     "path": "."
