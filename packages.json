@@ -40,6 +40,11 @@
     "path": "."
   },
   {
+    "name": "nabu-pmac",
+    "repo": "https://github.com/nabu-alarm/nabu-pmac-pkg",
+    "path": "."
+  },
+  {
     "name": "qbootctl",
     "repo": "https://aur.archlinux.org/qbootctl.git",
     "path": "."
