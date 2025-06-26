@@ -77,7 +77,7 @@ jobs:
 
           for dir in ./packages/*; do
             echo "Building $dir"
-            pushd "./packages/$dir"
+            pushd "$dir"
             makepkg -s --noconfirm --clean --sign
             mv *.pkg.tar.xz *.sig "$outdir"
             popd
