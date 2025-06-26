@@ -1,0 +1,53 @@
+pkgname=linux-firmware-xiaomi-pipa
+_commit="842d35beffeda8c6d1b0e611b335543bf0e6b41e"
+pkgver=25.06.26
+pkgrel=1
+pkgdesc='Firmware for Xiaomi Pad 5'
+url='https://github.com/pipa-mainline/xiaomi-pipa-firmware'
+arch=(any)
+license=("proprietary")
+options=(
+	!debug
+	!strip
+)
+source=(
+	"xiaomi-pipa-firmware-$_commit.tar.gz::$url/archive/$_commit/xiaomi-pipa-firmware-$_commit.tar.gz"
+	'awinic_firmware.files'
+	'dsp_firmware.files'
+	'qcom_firmware.files'
+	'novatek_firmware.files'
+	'nuvolta_firmware.files'
+)
+sha256sums=(
+	'SKIP'
+	'SKIP'
+	'SKIP'
+	'SKIP'
+	'SKIP'
+	'SKIP'
+)
+depends=(
+	'linux-firmware'
+)
+
+package() {
+	mkdir -p "$pkgdir"
+	cd "$srcdir/xiaomi-pipa-firmware-$_commit"
+
+	local firmware
+	for firmware in $(cat ${srcdir}/awinic_firmware.files); do
+		install -Dm644 ${firmware} "$pkgdir/usr/lib/firmware/awinic"
+	done
+
+	for firmware in $(cat ${srcdir}/novatek_firmware.files); do
+		install -Dm644 ${firmware} "$pkgdir/usr/lib/firmware/novatek"
+	done
+
+	for firmware in $(cat ${srcdir}/qcom_firmware.files); do
+		install -Dm644 ${firmware} "$pkgdir/usr/lib/firmware/qcom/sm8250/xiaomi/pipa"
+	done
+
+	for firmware in $(cat ${srcdir}/dsp_firmware.files); do
+		install -Dm644 ${firmware} "$pkgdir/$(echo ${firmware} | rev | cut -d'/' -f2- | rev)"
+	done
+}

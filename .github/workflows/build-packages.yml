@@ -81,31 +81,14 @@ jobs:
           outdir="$(realpath ./out)"
           updated_state="{}"
 
-          for row in $(jq -c '.[]' packages.json); do
-            name="$(echo "$row" | jq -r '.name')"
-            repo="$(echo "$row" | jq -r '.repo')"
-            path="$(echo "$row" | jq -r '.path')"
-
-            echo "::group::$name"
-            latest_sha=$(git ls-remote "$repo" HEAD | cut -f1 | tail -n1)
-            cached_sha=$(jq -r --arg name "$name" '.[$name] // ""' build-state.json)
-
-            if [[ "$latest_sha" != "$cached_sha" ]]; then
-              echo "Building $name"
-              git clone --depth=1 "$repo" src/$name
-              pushd "src/$name/$path"
-              makepkg -s --noconfirm --clean --sign
-              mv *.pkg.tar.xz *.sig "$outdir"
-              popd
-              updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$latest_sha" '. + {($name): $sha}')
-            else
-              echo "Skipping $name (unchanged)"
-              updated_state=$(echo "$updated_state" | jq --arg name "$name" --arg sha "$cached_sha" '. + {($name): $sha}')
-            fi
+          for dir in ./packages/*; do
+            echo "Building $dir"
+            pushd "./packages/$dir"
+            makepkg -s --noconfirm --clean --sign
+            mv *.pkg.tar.xz *.sig "$outdir"
+            popd
             echo "::endgroup::"
           done
-
-          echo "$updated_state" > new-build-state.json
 
       - name: Add packages to repo
         run: |
@@ -113,7 +96,7 @@ jobs:
           cd repo
           KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
           if ls *.pkg.tar.xz >/dev/null 2>&1; then
-            repo-add -s -k $KEYID nabu-alarm.db.tar.gz *.pkg.tar.xz
+            repo-add -s -k $KEYID pipa-alarm.db.tar.gz *.pkg.tar.xz
           fi
 
       - name: Save new build-state

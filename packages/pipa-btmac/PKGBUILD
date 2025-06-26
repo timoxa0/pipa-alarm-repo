@@ -1,0 +1,26 @@
+_pkgname="pipa-btmac"
+pkgname="$_pkgname"
+pkgdesc="Set WLAN mac address based on board serial"
+pkgver=1
+pkgrel=1
+arch=("any")
+url="https://github.com/timoxa0/pipa-alarm-repo"
+license=("MIT")
+depends=("bash" "bluez")
+makedepends=("git" "make")
+provides=("$_pkgname")
+source=(
+	'Makefile'
+	'pipa-btmac-set'
+)
+md5sums=(
+	'SKIP'
+	'SKIP'
+)
+
+build=()
+
+package() {
+	cd "$srcdir"
+	make DESTDIR="$pkgdir" PREFIX="/usr" install
+}
