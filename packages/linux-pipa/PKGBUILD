@@ -67,17 +67,16 @@ prepare() {
 	echo "Setting config..."
 	cp ../defconfig_pipa .config
 
-	make -s kernelrelease >version
-
 	# Don't run depmod on "make install", we'll do that ourselves in packaging
 	sed -i '2iexit 0' scripts/depmod.sh
-	echo "Prepared $pkgbase version $(<version)"
+	echo "Prepared $pkgbase"
 }
 
 build() {
 	cd $_srcname
 	unset LDFLAGS
 	make Image.gz modules dtbs
+	make -s kernelrelease >version
 }
 
 pkgver() {
