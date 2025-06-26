@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      - 'packages.json'
       - '.github/workflows/build-packages.yml'
 
   schedule:
@@ -53,12 +52,6 @@ jobs:
           ref: main
           path: main
 
-      - name: Load config
-        run: |
-          cp main/packages.json .
-          [ ! -f repo/build-state.json ] && echo '{}' > repo/build-state.json
-          cp repo/build-state.json .
-
       - name: Import GPG key
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
@@ -75,8 +68,9 @@ jobs:
           echo "PKGEXT='.pkg.tar.xz'" >> ~/.makepkg.conf
           echo "SRCEXT='.src.tar.gz'" >> ~/.makepkg.conf
 
-      - name: Build only changed packages
+      - name: Build packages
         run: |
+          cp main/packages -rv .
           mkdir out
           outdir="$(realpath ./out)"
           updated_state="{}"
@@ -98,9 +92,6 @@ jobs:
           if ls *.pkg.tar.xz >/dev/null 2>&1; then
             repo-add -s -k $KEYID pipa-alarm.db.tar.gz *.pkg.tar.xz
           fi
-
-      - name: Save new build-state
-        run: cp new-build-state.json repo/build-state.json
 
       - name: Push to repo
         uses: peaceiris/actions-gh-pages@v3
