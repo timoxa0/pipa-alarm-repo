@@ -65,8 +65,8 @@ prepare() {
 	done
 
 	echo "Setting config..."
-	cp ../pipa-defconfig ./arch/$KARCH/configs/pipa-defconfig
-	make pipa-defconfig
+	cp ../defconfig_pipa ./arch/$KARCH/configs/defconfig_pipa
+	make defconfig_pipa
 
 	make -s kernelrelease >version
 
