@@ -35,7 +35,7 @@ options=(
 )
 source=(
 	"$_srcname::git+$url.git#branch=$_branch"
-	"pipa-defconfig"
+	"defconfig_pipa"
 )
 sha256sums=(
 	"SKIP"
