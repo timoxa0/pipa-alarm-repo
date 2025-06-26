@@ -108,7 +108,7 @@ _package() {
 
 	echo "Installing boot image..."
 	install -d -m755 "$pkgdir/boot"
-	install -Dm644 arch/$KARCH/boot/dts/qcom/sm8150-xiaomi-nabu.dtb "$pkgdir/boot/dtb-$(<version)"
+	install -Dm644 arch/$KARCH/boot/dts/qcom/sm8250-xiaomi-pipa.dtb "$pkgdir/boot/dtb-$(<version)"
 	ln -sr "$pkgdir/boot/dtb-$(<version)" "$pkgdir/boot/dtb-$pkgbase"
 	install -Dm644 arch/$KARCH/boot/Image.gz "$pkgdir/boot/vmlinuz-$(<version)"
 	# systemd expects to find the kernel here to allow hibernation
