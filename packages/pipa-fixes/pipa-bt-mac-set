@@ -16,4 +16,6 @@ else
 	source /etc/bluetooth-mac
 fi
 
+sleep 3
+
 echo "yes" | btmgmt --index 0 public-addr $MAC_ADDR
