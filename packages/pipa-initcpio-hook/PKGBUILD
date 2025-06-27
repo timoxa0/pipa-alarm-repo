@@ -7,6 +7,9 @@ arch=("any")
 url="https://github.com/timoxa0/pipa-alarm-repo"
 license=("MIT")
 depends=("bash" "python3" "android-tools" "mkinitcpio")
+optdepends=(
+    'qbootctl: boot image flashing'
+    )
 makedepends=()
 provides=("$_pkgname")
 source=(

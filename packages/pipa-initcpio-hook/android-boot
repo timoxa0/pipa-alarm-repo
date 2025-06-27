@@ -33,6 +33,11 @@ log() {
 	esac
 }
 
+if [[ "$INITRD_IMAGE" == *"-fallback.img" ]]; then
+    log "Fallback image detected. Stopping"
+    exit 0 
+fi
+
 CMDLINE=()
 if [ -d "/etc/cmdline.d" ] && find "/etc/cmdline.d" -mindepth 1 | read; then
 	for file in /etc/cmdline.d/*; do
@@ -62,3 +67,20 @@ mkbootimg \
 	-o "$ABOOT_IMAGE"
 
 log "Boot has been built to $ABOOT_IMAGE"
+
+if [ ! -e "/dev/disk/by-partlabel/boot_a" ];then
+    log "Boot partition not found" warn
+    exit 0
+fi
+
+if ! command -v qbootctl >dev/null 2>&1; then
+    log "Note: qbootctl not found. Cannot find boot slot" warn
+    log "Flash boot image manually" warn
+    exit 0 
+fi
+
+slot="$(qbootctl -c 2>/dev/null| awk '{print $3}')"
+log "Detected boot slot: $slot"
+device="/dev/disk/by-partlabel/boot$slot"
+log "Flashing to $device"
+dd if="$ABOOT_IMAGE" of="$device" status=progress > /dev/null 2>&1
