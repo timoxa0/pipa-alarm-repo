@@ -1,0 +1,12 @@
+[Unit]
+Description=Set BT mac address
+Wants=bluetooth.target
+After=bluetooth.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/pipa-bt-mac-set
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

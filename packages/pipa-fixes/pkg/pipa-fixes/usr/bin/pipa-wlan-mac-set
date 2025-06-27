@@ -6,7 +6,7 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-serial=$(cat /sys/class/dmi/id/board_serial 2>/dev/null || echo "")
+serial=$(cat /sys/devices/soc0/serial_number 2>/dev/null || echo "")
 if [ -z "$serial" ]; then
   echo "Board serial not found, aborting."
   exit 1
@@ -21,6 +21,7 @@ first_byte_dec=$(( (first_byte_dec & 0xFC) | 0x02 ))
 first_byte_hex=$(printf '%02x' $first_byte_dec)
 mac="${first_byte_hex}:${mac_bytes[1]}:${mac_bytes[2]}:${mac_bytes[3]}:${mac_bytes[4]}:${mac_bytes[5]}"
 
-btmgmt --index 0 public-addr "$mac"
+ip link set dev wlp1s0 address "$mac"
+ip link set dev wlp1s0 up
 
 echo "Serial: $serial"

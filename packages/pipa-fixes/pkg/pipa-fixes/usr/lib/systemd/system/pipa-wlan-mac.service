@@ -1,0 +1,14 @@
+[Unit]
+Description=Set WLAN mac address based on board serial
+Wants=network-pre.target
+Before=network-pre.target
+BindsTo=sys-subsystem-net-devices-wlp1s0.device
+After=sys-subsystem-net-devices-wlp1s0.device
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/pipa-wlan-mac-set
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

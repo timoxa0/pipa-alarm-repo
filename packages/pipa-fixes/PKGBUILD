@@ -1,19 +1,21 @@
-_pkgname="pipa-btmac"
+_pkgname="pipa-fixes"
 pkgname="$_pkgname"
-pkgdesc="Set WLAN mac address based on board serial"
+pkgdesc="Set WLAN/BT mac address on boot"
 pkgver=1
 pkgrel=1
 arch=("any")
 url="https://github.com/timoxa0/pipa-alarm-repo"
 license=("MIT")
-depends=("bash" "bluez")
+depends=("bash" "bluez-utils" "iproute2")
 makedepends=("git" "make")
 provides=("$_pkgname")
 source=(
 	'Makefile'
-	'pipa-btmac-set'
+	'pipa-bt-mac-set'
+	'pipa-wlan-mac-set'
 )
 md5sums=(
+	'SKIP'
 	'SKIP'
 	'SKIP'
 )
