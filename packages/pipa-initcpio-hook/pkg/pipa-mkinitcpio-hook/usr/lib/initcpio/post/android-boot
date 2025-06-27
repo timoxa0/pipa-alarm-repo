@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -e -u
+
+KERNEL_IMAGE="$1"
+INITRD_IMAGE="$2"
+KERNEL_ZIMAGE="${KERNEL_IMAGE/vmlinuz/zImage}"
+ABOOT_IMAGE="${KERNEL_IMAGE/vmlinuz/boot}.img"
+DTB="${KERNEL_IMAGE/vmlinuz/dtb}"
+
+black='\033[0;30m'
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+blue='\033[0;34m'
+magenta='\033[0;35m'
+cyan='\033[0;36m'
+white='\033[0;37m'
+b='\e[1m'
+r='\e[0m'
+
+log() {
+	case "${2:-info}" in
+	err)
+		printf "${red}${b}     -> ERROR:${r}${b} %s${r}\n" "$1"
+		;;
+	warn)
+		printf "${yellow}${b}     -> WARNING:${r}${b} %s${r}\n" "$1"
+		;;
+	info)
+		printf "${blue}${b}    ->${r}${b} %s${r}\n" "$1"
+		;;
+	esac
+}
+
+CMDLINE=()
+if [ -d "/etc/cmdline.d" ] && find "/etc/cmdline.d" -mindepth 1 | read; then
+	for file in /etc/cmdline.d/*; do
+		log "Using cmdline file: '$file'"
+		CMDLINE+=("$(<$file)")
+	done
+    CMDLINE="${CMDLINE[@]}"
+else
+    log "Note: no cmdline files were found" warn
+    log "Reusing current kernel cmdline from /proc/cmdline" warn
+    CMDLINE="$(cat /proc/cmdline)"
+fi
+
+cat "$KERNEL_IMAGE" "$DTB" > "$KERNEL_ZIMAGE"
+
+mkbootimg \
+	--header_version 0 \
+	--kernel_offset 0x00008000 \
+	--base 0x00000000 \
+	--ramdisk_offset 0x01000000 \
+	--second_offset 0x00f00000 \
+	--tags_offset 0x00000100 \
+	--pagesize 4096 \
+	--kernel "$KERNEL_ZIMAGE" \
+	--ramdisk "$INITRD_IMAGE" \
+	--cmdline "$CMDLINE" \
+	-o "$ABOOT_IMAGE"
+
+log "Boot has been built to $ABOOT_IMAGE"

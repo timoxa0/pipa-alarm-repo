@@ -1,0 +1,24 @@
+_pkgname="pipa-mkinitcpio-hook"
+pkgname="$_pkgname"
+pkgdesc="Build aboot image hook for mkinitcpio"
+pkgver=1
+pkgrel=1
+arch=("any")
+url="https://github.com/timoxa0/pipa-alarm-repo"
+license=("MIT")
+depends=("bash" "python3" "android-tools" "mkinitcpio")
+makedepends=()
+provides=("$_pkgname")
+source=(
+	'android-boot'
+)
+md5sums=(
+	'SKIP'
+)
+
+build=()
+
+package() {
+	cd "$srcdir"
+	install -Dm755 android-boot "$pkgdir/usr/lib/initcpio/post/android-boot"
+}
