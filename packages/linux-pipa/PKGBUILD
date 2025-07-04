@@ -1,7 +1,7 @@
 pkgbase=linux-pipa
 _branch=pipa-6.14.11
 _srcname=linux-pipa
-pkgver=6.14.11.db6072e1ede2
+pkgver=6.14.11
 pkgrel=1
 pkgdesc='Snapdragon 865 Mainline Linux for Pipa'
 url='https://github.com/pipa-mainline/linux'
@@ -81,7 +81,7 @@ build() {
 
 pkgver() {
 	cd $_srcname
-	printf "%s.%s" "$(make kernelversion -s)" "$(git rev-parse --short=12 HEAD)"
+	printf "%s" "$(make kernelversion -s)"
 }
 
 _package() {
