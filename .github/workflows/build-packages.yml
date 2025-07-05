@@ -87,8 +87,8 @@ jobs:
 
       - name: Setup git
         run: |
-          git config --global user.name Builder
-          git config --global user.email builder@tx0.su
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install tools
         run: sudo pacman -S --noconfirm base-devel git jq gnupg
