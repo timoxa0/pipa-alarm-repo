@@ -118,7 +118,7 @@ jobs:
       - name: Build package ${{ matrix.pkg }}
         run: |
           cd main/${{ matrix.pkg }}
-          makepkg --noconfirm -s
+          makepkg --noconfirm -s --sign
           mkdir -p ../../../artifacts/${{ matrix.pkg }}/
           cp *.pkg.tar.* ../../../artifacts/${{ matrix.pkg }}/
 
