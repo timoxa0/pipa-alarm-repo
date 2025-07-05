@@ -1,0 +1,15 @@
+pkgbase = alsa-ucm-conf-xiaomi-pipa
+	pkgdesc = ALSA ucm2 settings for Xiaomi Pad 6
+	pkgver = 1.0
+	pkgrel = 1
+	arch = aarch64
+	license = Unknown
+	depends = alsa-ucm-conf
+	options = !debug
+	options = !strip
+	source = HiFi-Pipa.conf
+	source = Xiaomi Pad 6.conf
+	sha256sums = f50b6febf10930fa3902c1e5890e8ee843c48a2ab6e9c1dfdb9f82faaf515cc2
+	sha256sums = d9fb949d4c69d15ecb375a36254d0f93f1507bc7cb540c7f20a78401a338b669
+
+pkgname = alsa-ucm-conf-xiaomi-pipa

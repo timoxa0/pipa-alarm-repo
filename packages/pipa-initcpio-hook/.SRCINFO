@@ -1,0 +1,17 @@
+pkgbase = pipa-mkinitcpio-hook
+	pkgdesc = Build aboot image hook for mkinitcpio
+	pkgver = 2
+	pkgrel = 1
+	url = https://github.com/timoxa0/pipa-alarm-repo
+	arch = any
+	license = MIT
+	depends = bash
+	depends = python3
+	depends = android-tools
+	depends = mkinitcpio
+	optdepends = qbootctl: boot image flashing
+	provides = pipa-mkinitcpio-hook
+	source = android-boot
+	sha256sums = ce293194afd656496e88b55a5dc7751cc5cfad445cb35ade64fcfbb4705d14b2
+
+pkgname = pipa-mkinitcpio-hook

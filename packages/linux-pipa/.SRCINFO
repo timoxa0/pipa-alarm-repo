@@ -1,0 +1,43 @@
+pkgbase = linux-pipa
+	pkgdesc = Snapdragon 865 Mainline Linux for Pipa
+	pkgver = 6.14.11
+	pkgrel = 2
+	url = https://github.com/pipa-mainline/linux
+	arch = aarch64
+	license = GPL-2.0-only
+	makedepends = bc
+	makedepends = cpio
+	makedepends = gettext
+	makedepends = git
+	makedepends = libelf
+	makedepends = pahole
+	makedepends = perl
+	makedepends = python
+	makedepends = rust
+	makedepends = rust-bindgen
+	makedepends = rust-src
+	makedepends = tar
+	makedepends = xz
+	options = !debug
+	options = !strip
+	source = linux-pipa::git+https://github.com/pipa-mainline/linux.git#branch=pipa-6.14.11
+	source = defconfig_pipa
+	sha256sums = SKIP
+	sha256sums = SKIP
+
+pkgname = linux-pipa
+	pkgdesc = The Snapdragon 865 Mainline Linux for Pipa kernel and modules
+	depends = linux-firmware-xiaomi-pipa>=25.06.26
+	depends = coreutils
+	depends = initramfs
+	depends = kmod
+	optdepends = linux-firmware: firmware images needed for some devices
+	optdepends = scx-scheds: to use sched-ext schedulers
+	optdepends = wireless-regdb: to set the correct wireless channels of your country
+	provides = WIREGUARD-MODULE
+	replaces = 
+
+pkgname = linux-pipa-headers
+	pkgdesc = Headers and scripts for building modules for the Snapdragon 865 Mainline Linux for Pipa kernel
+	depends = pahole
+	provides = linux-headers
