@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Install git
-        run: sudo pacman -Sy --noconfirm git
+        run: pacman -Sy --noconfirm git
 
       - name: Checkout main branch
         uses: actions/checkout@v4
@@ -35,3 +35,144 @@ jobs:
 
           changed=()
           for pkg in */PKGBUILD; do
+            dir=$(dirname "$pkg")
+            echo "Checking $dir"
+
+            (cd "$dir" && makepkg --printsrcinfo > .SRCINFO.generated)
+
+            if [ ! -f "$dir/.SRCINFO" ]; then
+              echo "$dir has no .SRCINFO, will build"
+              changed+=("$dir")
+              continue
+            fi
+
+            if ! diff -q "$dir/.SRCINFO" "$dir/.SRCINFO.generated" >/dev/null; then
+              echo "$dir .SRCINFO differs, will build"
+              changed+=("$dir")
+            fi
+          done
+
+          if [ ${#changed[@]} -eq 0 ]; then
+            echo "No packages changed"
+            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+          else
+            matrix=$(printf '%s\n' "${changed[@]}" | jq -R . | jq -s '{include: map({pkg: .})}')
+            echo "matrix=$matrix" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    name: Build ${{ matrix.pkg }}
+    needs: detect
+    if: needs.detect.outputs.matrix != '{"include":[]}'
+    runs-on: ubuntu-24.04-arm
+
+    container:
+      image: ghcr.io/nabu-alarm/archlinux-builder:latest
+
+    strategy:
+      matrix: ${{ fromJson(needs.detect.outputs.matrix) }}
+
+    steps:
+      - name: Configure pacman mirrorlist
+        run: |
+          sudo sed -i 's|Server = http://mirror.archlinuxarm.org/$arch/$repo|# Server = http://mirror.archlinuxarm.org/$arch/$repo|g' /etc/pacman.d/mirrorlist
+          sudo sed -i 's|# Server = http://eu.mirror.archlinuxarm.org/$arch/$repo|Server = http://eu.mirror.archlinuxarm.org/$arch/$repo|g' /etc/pacman.d/mirrorlist
+
+      - name: Update system
+        run: sudo pacman -Syu --noconfirm
+
+      - name: Setup git
+        run: |
+          git config --global user.name Builder
+          git config --global user.email builder@tx0.su
+
+      - name: Install tools
+        run: sudo pacman -S --noconfirm base-devel git jq gnupg
+
+      - name: Checkout repo (gh-pages)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: repo
+
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Import GPG key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          echo RELOADAGENT | gpg-connect-agent
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Configure makepkg
+        run: |
+          KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
+          echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
+          echo "PACKAGER='Arch Package Builder <build@tx0.su>'" >> ~/.makepkg.conf
+          echo "MAKEFLAGS='-j$(nproc)'" >> ~/.makepkg.conf
+          echo "PKGEXT='.pkg.tar.xz'" >> ~/.makepkg.conf
+          echo "SRCEXT='.src.tar.gz'" >> ~/.makepkg.conf
+
+      - name: Build package ${{ matrix.pkg }}
+        run: |
+          cd main/${{ matrix.pkg }}
+          makepkg --noconfirm -s
+          cp *.pkg.tar.* ../../repo/
+
+      - name: Commit built packages
+        run: |
+          cd repo
+          git config user.name "Builder"
+          git config user.email "builder@tx0.su"
+          git add *.pkg.tar.*
+          git commit -m "Add built ${{ matrix.pkg }} [CI]" || echo "No new packages to commit"
+          git push
+
+  update-db:
+    name: Update Repo Database
+    needs: build
+    runs-on: ubuntu-24.04-arm
+
+    container:
+      image: ghcr.io/nabu-alarm/archlinux-builder:latest
+
+    steps:
+      - name: Install pacman
+        run: sudo pacman -Sy --noconfirm pacman gnupg
+
+      - name: Checkout repo (gh-pages)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: repo
+
+      - name: Import GPG key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          echo RELOADAGENT | gpg-connect-agent
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Configure GPG for repo-add
+        run: |
+          KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
+          echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
+          echo "PACKAGER='Arch Repo Builder <repo@tx0.su>'" >> ~/.makepkg.conf
+
+      - name: Run repo-add with signing
+        run: |
+          cd repo
+          repo-add -n -R pipa-alarm.db.tar.gz *.pkg.tar.*
+
+      - name: Commit updated repo database and signatures
+        run: |
+          cd repo
+          git config user.name "Builder"
+          git config user.email "builder@tx0.su"
+          git add pipa-alarm.db* pipa-alarm.files* *.sig
+          git commit -m "Update signed repo database [CI]" || echo "No changes to commit"
+          git push
