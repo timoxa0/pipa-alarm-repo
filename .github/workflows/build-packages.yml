@@ -20,8 +20,10 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
     steps:
-      - name: Install git
-        run: sudo pacman -Sy --noconfirm git
+      - name: Prepare build system
+        run: |
+          sudo pacman -Syu --noconfirm
+          sudo pacman -S --noconfirm git jq
 
       - name: Checkout main branch
         uses: actions/checkout@v4
