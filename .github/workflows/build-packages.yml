@@ -57,11 +57,11 @@ jobs:
           
           if [ ${#changed[@]} -eq 0 ]; then
             echo "No packages changed"
-            echo 'matrix={"include":[]}'
+            echo 'matrix={"include":[]}' >> $GITHUB_OUTPUT
           else
             matrix=$(jq -nc '$ARGS.positional' --args -- "${changed[@]}")
             matrix="{\"include\":$(echo "$matrix" | jq -c 'map({pkg: .})')}"
-            echo "matrix=$matrix"
+            echo "matrix=$matrix" >> $GITHUB_OUTPUT
           fi
   build:
     name: Build ${{ matrix.pkg }}
