@@ -63,6 +63,7 @@ jobs:
             matrix="{\"include\":$(echo "$matrix" | jq -c 'map({pkg: .})')}"
             echo "matrix=$matrix" >> $GITHUB_OUTPUT
           fi
+
   build:
     name: Build ${{ matrix.pkg }}
     needs: detect
@@ -92,12 +93,6 @@ jobs:
       - name: Install tools
         run: sudo pacman -S --noconfirm base-devel git jq gnupg
 
-      - name: Checkout repo (gh-pages)
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: repo
-
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
@@ -124,19 +119,17 @@ jobs:
         run: |
           cd main/${{ matrix.pkg }}
           makepkg --noconfirm -s
-          cp *.pkg.tar.* ../../../repo/
+          mkdir -p ../../../artifacts/
+          cp *.pkg.tar.* ../../../artifacts/
 
-      - name: Commit built packages
-        run: |
-          cd repo
-          git config user.name "Builder"
-          git config user.email "builder@tx0.su"
-          git add *.pkg.tar.*
-          git commit -m "Add built ${{ matrix.pkg }} [CI]" || echo "No new packages to commit"
-          git push
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/*.pkg.tar.*
 
-  update-db:
-    name: Update Repo Database
+  update-repo:
+    name: Update Repository
     needs: build
     runs-on: ubuntu-24.04-arm
 
@@ -144,14 +137,25 @@ jobs:
       image: ghcr.io/nabu-alarm/archlinux-builder:latest
 
     steps:
-      - name: Install pacman
+      - name: Install pacman and tools
         run: sudo pacman -Sy --noconfirm pacman gnupg
 
-      - name: Checkout repo (gh-pages)
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: repo
+
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
           ref: gh-pages
-          path: repo
+          path: gh-pages
+
+      - name: Copy packages to repo
+        run: |
+          cp repo/*.pkg.tar.* gh-pages/
+          rm -rf repo
 
       - name: Import GPG key
         run: |
@@ -166,16 +170,16 @@ jobs:
           echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
           echo "PACKAGER='Arch Repo Builder <repo@tx0.su>'" >> ~/.makepkg.conf
 
-      - name: Run repo-add with signing
+      - name: Update repository database
         run: |
-          cd repo
+          cd gh-pages
           repo-add -n -R pipa-alarm.db.tar.gz *.pkg.tar.*
 
-      - name: Commit updated repo database and signatures
+      - name: Commit and push changes
         run: |
-          cd repo
+          cd gh-pages
           git config user.name "Builder"
           git config user.email "builder@tx0.su"
-          git add pipa-alarm.db* pipa-alarm.files* *.sig
-          git commit -m "Update signed repo database [CI]" || echo "No changes to commit"
+          git add .
+          git commit -m "Update repository with new packages [CI]" || echo "No changes to commit"
           git push
