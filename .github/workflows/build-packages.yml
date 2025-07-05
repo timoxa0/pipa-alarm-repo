@@ -40,29 +40,29 @@ jobs:
           for pkg in ./packages/*/PKGBUILD; do
             dir=$(dirname "$pkg")
             echo "Checking $dir"
-
+          
             (cd "$dir" && makepkg --printsrcinfo > .SRCINFO.generated)
-
+          
             if [ ! -f "$dir/.SRCINFO" ]; then
               echo "$dir has no .SRCINFO, will build"
               changed+=("$dir")
               continue
             fi
-
+          
             if ! diff -q "$dir/.SRCINFO" "$dir/.SRCINFO.generated" >/dev/null; then
               echo "$dir .SRCINFO differs, will build"
               changed+=("$dir")
             fi
           done
-
+          
           if [ ${#changed[@]} -eq 0 ]; then
             echo "No packages changed"
-            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+            echo 'matrix={"include":[]}'
           else
-            matrix=$(printf '%s\n' "${changed[@]}" | jq -R . | jq -s '{include: map({pkg: .})}')
-            echo "matrix=$matrix" >> $GITHUB_OUTPUT
+            matrix=$(jq -nc '$ARGS.positional' --args -- "${changed[@]}")
+            matrix="{\"include\":$(echo "$matrix" | jq -c 'map({pkg: .})')}"
+            echo "matrix=$matrix"
           fi
-
   build:
     name: Build ${{ matrix.pkg }}
     needs: detect
