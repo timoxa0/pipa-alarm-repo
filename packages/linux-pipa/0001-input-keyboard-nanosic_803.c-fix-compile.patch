@@ -1,0 +1,24 @@
+From 553d833bef02dc5eb1c61a2ec29dfb84b12c574a Mon Sep 17 00:00:00 2001
+From: tx0 <me@tx0.su>
+Date: Sat, 5 Jul 2025 16:37:58 +0500
+Subject: [PATCH] input: keyboard: nanosic_803.c: fix compile
+
+---
+ drivers/input/keyboard/nanosic_803.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/input/keyboard/nanosic_803.c b/drivers/input/keyboard/nanosic_803.c
+index 8345e394278a..a6bc87cb5a65 100644
+--- a/drivers/input/keyboard/nanosic_803.c
++++ b/drivers/input/keyboard/nanosic_803.c
+@@ -20,6 +20,7 @@
+ #include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/mutex.h>
++#include <linux/gpio/consumer.h>
+ 
+ #define I2C_DATA_LENGTH_READ (68)
+ #define I2C_DATA_LENGTH_WRITE (66)
+-- 
+2.50.0
+

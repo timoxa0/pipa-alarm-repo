@@ -36,10 +36,12 @@ options=(
 source=(
 	"$_srcname::git+$url.git#branch=$_branch"
 	"defconfig_pipa"
+    "0001-input-keyboard-nanosic_803.c-fix-compile.patch"
 )
 sha256sums=(
 	"SKIP"
-	"SKIP"
+	"51d0bc32969a677575f4c606c9ad4c1dafa3a6dec76b0c5978edb84d4549aa46"
+    "a8bb3534ee122952a1b394e78cee8b85862cfee1d123293ab5edfd65a158ac4e"
 )
 
 export KBUILD_BUILD_HOST=lon
