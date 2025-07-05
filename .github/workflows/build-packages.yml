@@ -34,7 +34,7 @@ jobs:
           cd main
 
           changed=()
-          for pkg in */PKGBUILD; do
+          for pkg in ./packages/*/PKGBUILD; do
             dir=$(dirname "$pkg")
             echo "Checking $dir"
 
