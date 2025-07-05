@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Install git
-        run: pacman -Sy --noconfirm git
+        run: sudo pacman -Sy --noconfirm git
 
       - name: Checkout main branch
         uses: actions/checkout@v4
