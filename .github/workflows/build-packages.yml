@@ -90,7 +90,7 @@ jobs:
           cd repo
           KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
           if ls *.pkg.tar.xz >/dev/null 2>&1; then
-            repo-add -s -k $KEYID pipa-alarm.db.tar.gz *.pkg.tar.xz
+            repo-add -s -k $KEYID pipa-alarm.db.tar.gz *.pkg.tar.xz -R
           fi
 
       - name: Push to repo
