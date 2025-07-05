@@ -4,24 +4,77 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '.github/workflows/build-packages.yml'
-
-  schedule:
-    - cron: '0 0 * * 1'
+      - test
 
   workflow_dispatch:
 
 jobs:
-  build:
+  detect:
+    name: Detect Changed Packages
     runs-on: ubuntu-24.04-arm
-    
-    permissions:
-      packages: read
-      contents: write
 
-    container: 
+    container:
       image: ghcr.io/nabu-alarm/archlinux-builder:latest
+
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Prepare build system
+        run: |
+          sudo pacman -Syu --noconfirm
+          sudo pacman -S --noconfirm git jq
+
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Find updated or changed packages
+        id: set-matrix
+        run: |
+          cd main
+
+          changed=()
+          for pkg in packages/*/PKGBUILD; do
+            dir=$(dirname "$pkg")
+            echo "Checking $dir"
+          
+            (cd "$dir" && makepkg --printsrcinfo > .SRCINFO.generated)
+          
+            if [ ! -f "$dir/.SRCINFO" ]; then
+              echo "$dir has no .SRCINFO, will build"
+              changed+=("$dir")
+              continue
+            fi
+          
+            if ! diff -q "$dir/.SRCINFO" "$dir/.SRCINFO.generated" >/dev/null; then
+              echo "$dir .SRCINFO differs, will build"
+              changed+=("$dir")
+            fi
+          done
+          
+          if [ ${#changed[@]} -eq 0 ]; then
+            echo "No packages changed"
+            echo 'matrix={"include":[]}' >> $GITHUB_OUTPUT
+          else
+            matrix=$(jq -nc '$ARGS.positional' --args -- "${changed[@]}")
+            matrix="{\"include\":$(echo "$matrix" | jq -c 'map({pkg: .})')}"
+            echo "matrix=$matrix" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    name: Build ${{ matrix.pkg }}
+    needs: detect
+    if: needs.detect.outputs.matrix != '{"include":[]}'
+    runs-on: ubuntu-24.04-arm
+
+    container:
+      image: ghcr.io/nabu-alarm/archlinux-builder:latest
+
+    strategy:
+      matrix: ${{ fromJson(needs.detect.outputs.matrix) }}
 
     steps:
       - name: Configure pacman mirrorlist
@@ -31,7 +84,7 @@ jobs:
 
       - name: Update system
         run: sudo pacman -Syu --noconfirm
-  
+
       - name: Setup git
         run: |
           git config --global user.name Builder
@@ -40,13 +93,7 @@ jobs:
       - name: Install tools
         run: sudo pacman -S --noconfirm base-devel git jq gnupg
 
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: repo
-      
-      - name: Checkout main
+      - name: Checkout main branch
         uses: actions/checkout@v4
         with:
           ref: main
@@ -68,34 +115,77 @@ jobs:
           echo "PKGEXT='.pkg.tar.xz'" >> ~/.makepkg.conf
           echo "SRCEXT='.src.tar.gz'" >> ~/.makepkg.conf
 
-      - name: Build packages
+      - name: Build package ${{ matrix.pkg }}
         run: |
-          cp main/packages -rv .
-          mkdir out
-          outdir="$(realpath ./out)"
-          updated_state="{}"
+          cd main/${{ matrix.pkg }}
+          makepkg --noconfirm -s --sign
+          mkdir -p ../../../artifacts/${{ matrix.pkg }}/
+          cp *.pkg.tar.* ../../../artifacts/${{ matrix.pkg }}/
 
-          for dir in ./packages/*; do
-            echo "Building $dir"
-            pushd "$dir"
-            makepkg -s --noconfirm --clean --sign
-            mv *.pkg.tar.xz *.sig "$outdir"
-            popd
-            echo "::endgroup::"
-          done
-
-      - name: Add packages to repo
+      - name: Set artifact name
         run: |
-          cp out/*.pkg.tar.xz out/*.sig repo/ 2>/dev/null || true
-          cd repo
-          KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
-          if ls *.pkg.tar.xz >/dev/null 2>&1; then
-            repo-add -s -k $KEYID pipa-alarm.db.tar.gz *.pkg.tar.xz -R
-          fi
-
-      - name: Push to repo
-        uses: peaceiris/actions-gh-pages@v3
+          SAFE_NAME="${{ matrix.pkg }}"
+          SAFE_NAME="${SAFE_NAME//\//-}"
+          echo "ARTIFACT_NAME=$SAFE_NAME" >> $GITHUB_ENV
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./repo
+          name: pkg-${{ env.ARTIFACT_NAME }}
+          path: artifacts/${{ matrix.pkg }}/*.pkg.tar.*
+          retention-days: 1
+
+  update-repo:
+    name: Update Repository
+    needs: build
+    runs-on: ubuntu-24.04-arm
+
+    container:
+      image: ghcr.io/nabu-alarm/archlinux-builder:latest
+
+    steps:
+      - name: Install pacman and tools
+        run: sudo pacman -Sy --noconfirm pacman gnupg
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: repo
+
+      - name: Download all package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Copy packages to repository
+        run: |
+          find artifacts -name "*.pkg.tar.*" -exec cp {} repo/ \;
+          rm -rf artifacts
+
+      - name: Import GPG key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          echo RELOADAGENT | gpg-connect-agent
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Configure GPG for repo-add
+        run: |
+          KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
+          echo "GPGKEY=$KEYID" >> ~/.makepkg.conf
+          echo "PACKAGER='Arch Repo Builder <repo@tx0.su>'" >> ~/.makepkg.conf
+
+      - name: Update repository database
+        run: |
+          cd repo
+          repo-add -n -R pipa-alarm.db.tar.gz *.pkg.tar.xz
+
+      - name: Commit and push changes
+        run: |
+          cd repo
+          git config user.name "Builder"
+          git config user.email "builder@tx0.su"
+          git add .
+          git commit -m "Update repository with new packages [CI]" || echo "No changes to commit"
+          git push
