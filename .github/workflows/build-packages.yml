@@ -179,7 +179,7 @@ jobs:
       - name: Update repository database
         run: |
           cd repo
-          repo-add -n -R pipa-alarm.db.tar.gz *.pkg.tar.*
+          repo-add -n -R pipa-alarm.db.tar.gz *.pkg.tar.xz
 
       - name: Commit and push changes
         run: |
