@@ -1,7 +1,7 @@
 pkgbase = linux-pipa
 	pkgdesc = Snapdragon 865 Mainline Linux for Pipa
 	pkgver = 6.14.11
-	pkgrel = 2
+	pkgrel = 4
 	url = https://github.com/pipa-mainline/linux
 	arch = aarch64
 	license = GPL-2.0-only
@@ -22,8 +22,10 @@ pkgbase = linux-pipa
 	options = !strip
 	source = linux-pipa::git+https://github.com/pipa-mainline/linux.git#branch=pipa-6.14.11
 	source = defconfig_pipa
+	source = 0001-input-keyboard-nanosic_803.c-fix-compile.patch
 	sha256sums = SKIP
-	sha256sums = SKIP
+	sha256sums = 51d0bc32969a677575f4c606c9ad4c1dafa3a6dec76b0c5978edb84d4549aa46
+	sha256sums = a8bb3534ee122952a1b394e78cee8b85862cfee1d123293ab5edfd65a158ac4e
 
 pkgname = linux-pipa
 	pkgdesc = The Snapdragon 865 Mainline Linux for Pipa kernel and modules
