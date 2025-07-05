@@ -1,10 +1,10 @@
 pkgbase=linux-pipa
-_branch=pipa-6.14.11
+_branch=domin746826/dev
 _srcname=linux-pipa
 pkgver=6.14.11
-pkgrel=2
+pkgrel=3
 pkgdesc='Snapdragon 865 Mainline Linux for Pipa'
-url='https://github.com/pipa-mainline/linux'
+url='https://github.com/pipa-project/linux'
 arch=(aarch64)
 license=(GPL-2.0-only)
 makedepends=(
