@@ -124,7 +124,7 @@ jobs:
         run: |
           cd main/${{ matrix.pkg }}
           makepkg --noconfirm -s
-          cp *.pkg.tar.* ../../repo/
+          cp *.pkg.tar.* ../../../repo/
 
       - name: Commit built packages
         run: |
