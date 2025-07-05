@@ -19,12 +19,12 @@ source=(
 	'nuvolta_firmware.files'
 )
 sha256sums=(
-	'SKIP'
-	'SKIP'
-	'SKIP'
-	'SKIP'
-	'SKIP'
-	'SKIP'
+	'fb998f540e8e5dcb28355a2ee00a3c36d4bfe5478d6f7962045887c58e789963'
+	'343d5f2b2a0f8272c2ca6622d3648819733642bf08667ed407d18468b77f9938'
+	'bac662bbdf7293d2d7c48a741e69cb1a624c9de4dc4bded304030f875d4f4e84'
+	'eca6cfd5eb8ba9249dd5ef719b5106821b8cda7de3ec4b072c00e8348b0065a9'
+	'853ed999a77125967073387fb8adf40363c80026061cc5256c94320dfb767e48'
+	'2fa1dc2845b27250ae5cbe39cbaef8020e6f4b47bdfb304b00130dbbf393665f'
 )
 depends=(
 	'linux-firmware-qcom'
@@ -36,7 +36,7 @@ package() {
 
 	local firmware
 	for firmware in $(cat ${srcdir}/awinic_firmware.files); do
-        install -Dm644 ${firmware} "$pkgdir/usr/lib/firmware/awinic/$(basename "${firmware}")"
+		install -Dm644 ${firmware} "$pkgdir/usr/lib/firmware/awinic/$(basename "${firmware}")"
 	done
 
 	for firmware in $(cat ${srcdir}/novatek_firmware.files); do

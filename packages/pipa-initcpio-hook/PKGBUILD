@@ -8,15 +8,15 @@ url="https://github.com/timoxa0/pipa-alarm-repo"
 license=("MIT")
 depends=("bash" "python3" "android-tools" "mkinitcpio")
 optdepends=(
-    'qbootctl: boot image flashing'
-    )
+	'qbootctl: boot image flashing'
+)
 makedepends=()
 provides=("$_pkgname")
 source=(
 	'android-boot'
 )
 md5sums=(
-	'SKIP'
+	'ce293194afd656496e88b55a5dc7751cc5cfad445cb35ade64fcfbb4705d14b2'
 )
 
 build=()

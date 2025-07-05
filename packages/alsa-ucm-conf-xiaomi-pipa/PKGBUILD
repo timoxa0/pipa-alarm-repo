@@ -1,0 +1,29 @@
+pkgname=alsa-ucm-conf-xiaomi-pipa
+pkgver=1.0
+pkgrel=1
+pkgdesc='ALSA ucm2 settings for Xiaomi Pad 6'
+arch=(aarch64)
+license=("Unknown")
+makedepends=(
+)
+options=(
+	!debug
+	!strip
+)
+source=(
+	'HiFi-Pipa.conf'
+	'Xiaomi Pad 6.conf'
+)
+sha256sums=(
+	'f50b6febf10930fa3902c1e5890e8ee843c48a2ab6e9c1dfdb9f82faaf515cc2'
+	'd9fb949d4c69d15ecb375a36254d0f93f1507bc7cb540c7f20a78401a338b669'
+)
+depends=(
+	'alsa-ucm-conf'
+)
+
+package() {
+	mkdir -p "$pkgdir"
+	install -Dm 644 "$srcdir/HiFi-Pipa.conf" "$pkgdir/usr/share/alsa/ucm2/Qualcomm/sm8250/HiFi-Pipa.conf"
+	install -Dm 644 "$srcdir/Xiaomi Pad 6.conf" "$pkgdir/usr/share/alsa/ucm2/conf.d/sm8250/Xiaomi Pad 6.conf"
+}

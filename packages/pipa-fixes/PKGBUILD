@@ -15,9 +15,9 @@ source=(
 	'pipa-wlan-mac-set'
 )
 md5sums=(
-	'SKIP'
-	'SKIP'
-	'SKIP'
+	'cbdd5884eb369c918c0115b387665044c3d1e92be34cf099d45348070acdfa3f'
+	'29d3600df8067fbd8637ca35f668e74a7017f53307c3192a54c9e9b5ca1a3ff4'
+	'517b67b022b9b98550b2556a717d356e48412ea10b96c18d0d80ed465c3b70d9'
 )
 
 build=()
