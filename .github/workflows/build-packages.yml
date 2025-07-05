@@ -122,10 +122,16 @@ jobs:
           mkdir -p ../../../artifacts/${{ matrix.pkg }}/
           cp *.pkg.tar.* ../../../artifacts/${{ matrix.pkg }}/
 
+      - name: Set artifact name
+        run: |
+          SAFE_NAME="${{ matrix.pkg }}"
+          SAFE_NAME="${SAFE_NAME//\//-}"
+          echo "ARTIFACT_NAME=$SAFE_NAME" >> $GITHUB_ENV
+      
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-${{ format('{0}', matrix.pkg).replace('/', '-') }}
+          name: pkg-${{ env.ARTIFACT_NAME }}
           path: artifacts/${{ matrix.pkg }}/*.pkg.tar.*
           retention-days: 1
 
