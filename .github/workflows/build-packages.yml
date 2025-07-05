@@ -37,7 +37,7 @@ jobs:
           cd main
 
           changed=()
-          for pkg in ./packages/*/PKGBUILD; do
+          for pkg in packages/*/PKGBUILD; do
             dir=$(dirname "$pkg")
             echo "Checking $dir"
           
@@ -119,14 +119,15 @@ jobs:
         run: |
           cd main/${{ matrix.pkg }}
           makepkg --noconfirm -s
-          mkdir -p ../../../artifacts/
-          cp *.pkg.tar.* ../../../artifacts/
+          mkdir -p ../../../artifacts/${{ matrix.pkg }}/
+          cp *.pkg.tar.* ../../../artifacts/${{ matrix.pkg }}/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: packages
-          path: artifacts/*.pkg.tar.*
+          name: pkg-${{ matrix.pkg | replace('/', '-') }}
+          path: artifacts/${{ matrix.pkg }}/*.pkg.tar.*
+          retention-days: 1
 
   update-repo:
     name: Update Repository
@@ -140,22 +141,21 @@ jobs:
       - name: Install pacman and tools
         run: sudo pacman -Sy --noconfirm pacman gnupg
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: packages
-          path: repo
-
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
           ref: gh-pages
-          path: gh-pages
+          path: repo
 
-      - name: Copy packages to repo
+      - name: Download all package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Copy packages to repository
         run: |
-          cp repo/*.pkg.tar.* gh-pages/
-          rm -rf repo
+          find artifacts -name "*.pkg.tar.*" -exec cp {} repo/ \;
+          rm -rf artifacts
 
       - name: Import GPG key
         run: |
@@ -172,12 +172,12 @@ jobs:
 
       - name: Update repository database
         run: |
-          cd gh-pages
+          cd repo
           repo-add -n -R pipa-alarm.db.tar.gz *.pkg.tar.*
 
       - name: Commit and push changes
         run: |
-          cd gh-pages
+          cd repo
           git config user.name "Builder"
           git config user.email "builder@tx0.su"
           git add .
