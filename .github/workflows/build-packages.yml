@@ -125,7 +125,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-${{ matrix.pkg | replace('/', '-') }}
+          name: pkg-${{ format('{0}', matrix.pkg).replace('/', '-') }}
           path: artifacts/${{ matrix.pkg }}/*.pkg.tar.*
           retention-days: 1
 
