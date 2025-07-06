@@ -28,33 +28,63 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
-          ref: main
           path: main
 
-      - name: Find updated or changed packages
+      - name: Get previous hashes
+        id: prev-hashes
+        run: |
+          if [ -f "main/package_hashes.txt" ]; then
+            echo "hashes=$(cat main/package_hashes.txt | jq -sR .)" >> $GITHUB_OUTPUT
+          else
+            echo "No existing hashes file found"
+            echo "hashes=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Find changed packages using hashes
         id: set-matrix
         run: |
           cd main
 
+          # Create array of changed packages
           changed=()
+          declare -A prev_hashes
+          
+          # Load previous hashes if they exist
+          if [ -n '${{ steps.prev-hashes.outputs.hashes }}' ]; then
+            while IFS=: read -r path hash; do
+              prev_hashes["$path"]=$hash
+            done <<< $(echo '${{ steps.prev-hashes.outputs.hashes }}' | jq -r . | grep .)
+          fi
+
+          # Generate current hashes and compare
+          current_hashes=()
           for pkg in packages/*/PKGBUILD; do
             dir=$(dirname "$pkg")
             echo "Checking $dir"
-          
-            (cd "$dir" && makepkg --printsrcinfo > .SRCINFO.generated)
-          
-            if [ ! -f "$dir/.SRCINFO" ]; then
-              echo "$dir has no .SRCINFO, will build"
-              changed+=("$dir")
-              continue
-            fi
-          
-            if ! diff -q "$dir/.SRCINFO" "$dir/.SRCINFO.generated" >/dev/null; then
-              echo "$dir .SRCINFO differs, will build"
+            
+            # Generate current .SRCINFO
+            (cd "$dir" && makepkg --printsrcinfo > .SRCINFO.current)
+            
+            # Calculate current hash
+            current_hash=$(sha256sum "$dir/.SRCINFO.current" | awk '{print $1}')
+            current_hashes+=("$dir:$current_hash")
+            
+            # Compare with previous hash if it exists
+            if [[ -v prev_hashes["$dir"] ]]; then
+              if [[ "${prev_hashes["$dir"]}" != "$current_hash" ]]; then
+                echo "$dir hash changed (was ${prev_hashes["$dir"]}, now $current_hash)"
+                changed+=("$dir")
+              fi
+            else
+              echo "$dir has no previous hash, will build"
               changed+=("$dir")
             fi
           done
+
+          # Output new hashes for next run
+          printf "%s\n" "${current_hashes[@]}" > package_hashes.txt
           
+          # Create build matrix
           if [ ${#changed[@]} -eq 0 ]; then
             echo "No packages changed"
             echo 'matrix={"include":[]}' >> $GITHUB_OUTPUT
@@ -63,6 +93,16 @@ jobs:
             matrix="{\"include\":$(echo "$matrix" | jq -c 'map({pkg: .})')}"
             echo "matrix=$matrix" >> $GITHUB_OUTPUT
           fi
+
+      - name: Commit updated hashes
+        if: always()
+        run: |
+          cd main
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package_hashes.txt
+          git commit -m "Update package hashes [CI]" || echo "No changes to commit"
+          git push
 
   build:
     name: Build ${{ matrix.pkg }}
